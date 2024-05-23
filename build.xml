@@ -241,8 +241,16 @@
             <classpath refid="project.classpath" />
         </javadoc>
 
-        <loadfile property="md5" srcFile="${checksums.md5.file}"/>
-        <loadfile property="sha1" srcFile="${checksums.sha1.file}"/>
+        <loadfile property="md5" srcFile="${checksums.md5.file}">
+            <filterchain>
+                <striplinebreaks/>
+            </filterchain>
+        </loadfile>
+        <loadfile property="sha1" srcFile="${checksums.sha1.file}">
+            <filterchain>
+                <striplinebreaks/>
+            </filterchain>
+        </loadfile>
 
         <manifest file="${build.dir}/webapp/META-INF/MANIFEST.MF" mode="update">
             <attribute name="MD5-Digest" value="${md5}"/>
