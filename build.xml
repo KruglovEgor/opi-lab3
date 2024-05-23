@@ -254,13 +254,10 @@
 
     <!-- Play music on build -->
     <target name="music" depends="build">
-        <exec executable="ffplay" failonerror="false">
-            <arg value="-nodisp"/>
-            <arg value="-autoexit"/>
-            <arg value="-t"/>
-            <arg value="35"/>
-            <arg value="${lib.dir}/song.mp3"/>
-        </exec>
+        <sound>
+            <success source="${lib.dir}/music/success.wav"/>
+            <fail source="${lib.dir}/music/fail.wav"/>
+        </sound>
     </target>
 
     <!-- Junit reports -->
