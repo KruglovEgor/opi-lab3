@@ -258,7 +258,7 @@
     <target name="music" depends="build">
         <sound>
             <success source="${lib.dir}/music/success.wav"/>
-            <fail source="${lib.dir}/music/fail.wav"/>
+            <fail source="${lib.dir}/music/failure.wav"/>
         </sound>
     </target>
 
