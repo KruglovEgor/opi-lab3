@@ -3,10 +3,7 @@
     <!-- Include variables and constants -->
     <property file="build.properties" />
 
-    <condition property="secret.exists" value="true" else="false">
-        <available file="secret.properties"/>
-    </condition>
-    <property file="secret.properties" if="secret.exists"/>
+    <property file="secret.properties" />
 
     <!-- Define the classpath for the project -->
     <path id="project.classpath">
