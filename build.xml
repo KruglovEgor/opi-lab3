@@ -87,18 +87,24 @@
 
     <!-- Test isInArea function using Junit -->
     <target name="test" depends="build">
+        <tstamp>
+            <format property="timestamp" pattern="dd-MM-yyyy_HH-mm-ss"/>
+        </tstamp>
+
         <mkdir dir="${build.dir}/test-classes"/>
         <javac srcdir="${test.dir}" destdir="${build.dir}/test-classes" includeantruntime="false" classpathref="test.classpath">
             <compilerarg line="-Xlint:unchecked"/>
         </javac>
-        <mkdir dir="${build.dir}/test-results"/>
-        <junitlauncher haltonfailure="true" printsummary="true">
+        <mkdir dir="${build.dir}/test-results/${timestamp}"/>
+        <junitlauncher haltonfailure="true" printsummary="true" >
             <classpath>
                 <path refid="test.classpath"/>
-                <pathelement location="${build.dir}/test-classes"/>
+                <pathelement location="${build.dir}"/>
             </classpath>
-            <testclasses outputdir="${build.dir}/test-results">
+            <testclasses outputdir="${build.dir}/test-results/${timestamp}">
                 <fileset dir="${build.dir}/test-classes" includes="**/*Test.class"/>
+                <listener type="legacy-brief" sendSysOut="true" sendSysErr="true"/>
+                <listener type="legacy-xml" sendSysOut="true" sendSysErr="true"/>
             </testclasses>
         </junitlauncher>
     </target>
@@ -168,8 +174,6 @@
             <jvmarg line="${jvm.params}"/>
         </java>
     </target>
-
-
 
     <!-- Find the last working revision if compilation fails -->
     <target name="history"
@@ -308,20 +312,18 @@
     <!-- Junit reports -->
     <target name="report" depends="test">
         <tstamp>
-        <format property="timestamp" pattern="MM.dd.yyyy_hh:mm:ss_aa"/>
+            <format property="timestamp" pattern="dd.MM.yyyy_HH-mm-ss"/>
         </tstamp>
 
-        <mkdir dir="${build.dir}/test-results"/>
-
-        <junitreport todir="${build.dir}/test-results">
+        <mkdir dir="${build.dir}/test-results/report_${timestamp}"/>
+        <junitreport todir="${build.dir}/test-results/report_${timestamp}">
             <fileset dir="${build.dir}/test-results">
-                <include name="TEST-*.xml"/>
+                <include name="**/TEST-*.xml"/>
             </fileset>
-<!--            <report format="frames" todir="${build.dir}/test-reports/html"/>-->
         </junitreport>
 
         <copy todir="${svn.main_dir}/report">
-            <fileset dir="${build.dir}/test-results/"/>
+            <fileset dir="${build.dir}/test-results/report_${timestamp}"/>
         </copy>
 
         <exec executable="svn" dir="${svn.main_dir}/report">
@@ -388,5 +390,4 @@
         <echo message="Last revision: ${revision}"/>
         <zip destfile="${build.dir}/team.zip" basedir="${build.dir}/team" />
     </target>
-
 </project>
