@@ -127,24 +127,27 @@
         </copy>
 
         <replace dir="${src}">
-            <replacefilter token="User" value="User_alt"/>
+            <exclude name="∗∗/∗.jar"/>
+            <replacefilter token="${alt.replace.from1}" value="${alt.replace.to1}"/>
         </replace>
 
         <replace dir="${src}">
-            <replacefilter token="Point" value="Point_alt"/>
+            <exclude name="∗∗/∗.jar"/>
+            <replacefilter token="${alt.replace.from2}" value="${alt.replace.to2}"/>
         </replace>
 
         <replace dir="${src}">
-            <replacefilter token="start" value="start_alt"/>
+            <exclude name="∗∗/∗.jar"/>
+            <replacefilter token="${alt.replace.from3}" value="${alt.replace.to3}"/>
         </replace>
 
         <move todir="${src}">
             <fileset dir="${src}">
             </fileset>
             <filtermapper>
-                <replacestring from="User" to="User_alt"/>
-                <replacestring from="Point" to="Point_alt"/>
-                <replacestring from="start" to="start_alt"/>
+                <replacestring from="${alt.replace.from1}" to="${alt.replace.to1}"/>
+                <replacestring from="${alt.replace.from2}" to="${alt.replace.to2}"/>
+                <replacestring from="${alt.replace.from3}" to="${alt.replace.to3}"/>
             </filtermapper>
         </move>
 
