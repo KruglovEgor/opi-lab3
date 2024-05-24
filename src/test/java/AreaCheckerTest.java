@@ -49,4 +49,13 @@ public class AreaCheckerTest {
         assertFalse(isInArea(-6, -2, 10));
         assertFalse(isInArea(0, -11, 10));
     }
+
+    @Test
+    public void testIsInAreaForEmptySector() {
+        for (int i = 1; i < 10; ++i) {
+            for (int j = -1; j > -10; --j) {
+                assertFalse(isInArea(i, j, 10));
+            }
+        }
+    }
 }
