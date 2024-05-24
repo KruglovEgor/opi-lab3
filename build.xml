@@ -1,7 +1,7 @@
 
 <project name="opi-lab-3" default="compile" basedir=".">
 
-    <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>
+<!--    <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>-->
     <taskdef resource="net/sf/antcontrib/antlib.xml"/>
 
 
