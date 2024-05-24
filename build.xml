@@ -84,7 +84,6 @@
         <javac srcdir="${test.dir}" destdir="${build.dir}/test-classes" includeantruntime="false" classpathref="test.classpath">
             <compilerarg line="-Xlint:unchecked"/>
         </javac>
-
         <mkdir dir="${build.dir}/test-results"/>
         <junitlauncher haltonfailure="true" printsummary="true">
             <classpath>
@@ -269,26 +268,31 @@
         </sound>
     </target>
 
+
     <!-- Junit reports -->
     <target name="report" depends="test">
-        <mkdir dir="${build.dir}/test-reports"/>
+        <tstamp>
+        <format property="timestamp" pattern="MM.dd.yyyy_hh:mm:ss_aa"/>
+        </tstamp>
 
-        <junitreport todir="${build.dir}/test-reports">
+        <mkdir dir="${build.dir}/test-results"/>
+
+        <junitreport todir="${build.dir}/test-results">
             <fileset dir="${build.dir}/test-results">
                 <include name="TEST-*.xml"/>
             </fileset>
-            <report format="frames" todir="${build.dir}/test-reports/html"/>
+<!--            <report format="frames" todir="${build.dir}/test-reports/html"/>-->
         </junitreport>
 
-        <exec executable="svn" failonerror="false">
-            <arg value="add"/>
-            <arg value="${build.dir}/test-reports"/>
-        </exec>
+        <copy todir="${svn.main_dir}/report">
+            <fileset dir="${build.dir}/test-results/"/>
+        </copy>
 
-        <exec executable="svn" failonerror="false">
-            <arg value="commit"/>
-            <arg value="-m"/>
-            <arg value="Automated commit of JUnit test report"/>
+        <exec executable="svn" dir="${svn.main_dir}/report">
+            <arg line="add --force ."/>
+        </exec>
+        <exec executable="svn" dir="${svn.main_dir}">
+            <arg line="commit -m 'Auto-test commit'"/>
         </exec>
     </target>
 
