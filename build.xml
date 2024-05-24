@@ -1,5 +1,4 @@
 <project name="opi-lab-3" default="compile" basedir=".">
-
     <!-- Include variables and constants -->
     <property file="build.properties" />
 
