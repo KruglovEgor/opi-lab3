@@ -113,29 +113,69 @@
     </target>
 
     <!-- Alternative version of the project -->
-    <target name="alt" depends="build">
-        <unwar src="${build.dir}/${war.name}" dest="${build.dir}/alt-webapp">
-            <patternset>
-                <include name="**/*" />
-            </patternset>
-        </unwar>
+    <target name="alt">
+        <copy todir="${src.tmp}">
+            <fileset dir="${src}"/>
+        </copy>
 
-        <replace dir="${build.dir}/alt-webapp">
-            <include name="**/*.java" />
-            <replacefilter token="variableName" value="alternativeVariableName" />
-            <replacefilter token="ClassName" value="AlternativeClassName" />
+        <replace dir="${src}">
+            <exclude name="∗∗/∗.jar"/>
+            <replacefilter token="User" value="User_alt"/>
         </replace>
 
-        <war destfile="${build.dir}/${war.name}-alt.war" webxml="${build.dir}/alt-webapp/WEB-INF/web.xml">
-            <manifest>
-                <attribute name="Manifest-Version" value="1.0"/>
-                <attribute name="Version" value="1.0-SNAPSHOT-ALT"/>
-            </manifest>
-            <fileset dir="${build.dir}/alt-webapp">
-                <include name="**/*" />
-                <exclude name="**/WEB-INF/web.xml" />
+        <replace dir="${src}">
+            <exclude name="∗∗/∗.jar"/>
+            <replacefilter token="Point" value="Point_alt"/>
+        </replace>
+
+        <replace dir="${src}">
+            <exclude name="∗∗/∗.jar"/>
+            <replacefilter token="start" value="start_alt"/>
+        </replace>
+
+        <move todir="${src}">
+            <fileset dir="${src}">
+                <exclude name="∗∗/∗.jar"/>
             </fileset>
-        </war>
+            <filtermapper>
+                <replacestring from="User" to="User_alt"/>
+                <replacestring from="Point" to="Point_alt"/>
+                <replacestring from="start" to="start_alt"/>
+            </filtermapper>
+        </move>
+
+        <antcall target="clean"/>
+        <antcall target="build"/>
+
+        <delete dir="${src}"/>
+
+        <copy todir="${src}">
+            <fileset dir="${src.tmp}"/>
+        </copy>
+
+        <delete dir="${src.tmp}"/>
+
+        <!--        <unwar src="${build.dir}/${war.name}" dest="${build.dir}/alt-webapp">-->
+        <!--            <patternset>-->
+        <!--                <include name="**/*" />-->
+        <!--            </patternset>-->
+        <!--        </unwar>-->
+
+        <!--        <replace dir="${build.dir}/alt-webapp">-->
+        <!--            <replacefilter token="variableName" value="alternativeVariableName" />-->
+        <!--            <replacefilter token="ClassName" value="AlternativeClassName" />-->
+        <!--        </replace>-->
+
+        <!--        <war destfile="${build.dir}/${war.name}-alt.war" webxml="${build.dir}/alt-webapp/WEB-INF/web.xml">-->
+        <!--            <manifest>-->
+        <!--                <attribute name="Manifest-Version" value="1.0"/>-->
+        <!--                <attribute name="Version" value="1.0-SNAPSHOT-ALT"/>-->
+        <!--            </manifest>-->
+        <!--            <fileset dir="${build.dir}/alt-webapp">-->
+        <!--                <include name="**/*" />-->
+        <!--                <exclude name="**/WEB-INF/web.xml" />-->
+        <!--            </fileset>-->
+        <!--        </war>-->
     </target>
 
     <!-- Alteernative environment -->
