@@ -5,7 +5,6 @@
     <taskdef resource="net/sf/antcontrib/antlib.xml"/>
 
 
-
     <!-- Include variables and constants -->
     <property file="build.properties" />
 
@@ -298,14 +297,16 @@
             </filterchain>
         </loadfile>
 
-        <manifest file="${build.dir}/webapp/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="MD5-Digest" value="${md5}"/>
-            <attribute name="SHA1-Digest" value="${sha1}"/>
-        </manifest>
 
         <war destfile="${build.dir}/${war.name}" update="true">
             <fileset dir="${build.dir}/javadoc"/>
+            <manifest>
+                <attribute name="MD5-Digest" value="${md5}"/>
+                <attribute name="SHA1-Digest" value="${sha1}"/>
+            </manifest>
         </war>
+
+
     </target>
 
     <!-- Play music on build -->
