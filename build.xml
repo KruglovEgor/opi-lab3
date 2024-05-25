@@ -355,6 +355,7 @@
                 <tokenfilter delimoutput=","/>
             </filterchain>
         </loadfile>
+        <echo message="${classes.to.check}"/>
 
         <condition property="changes.detected">
             <and>
@@ -368,7 +369,7 @@
         </antcall>
     </target>
 
-    <target name="commit" if="changes.detected">
+    <target name="commit" unless="${changes.detected}">
         <exec executable="git" failonerror="true">
             <arg value="add"/>
             <arg value="."/>
@@ -398,5 +399,20 @@
         </for>
         <echo message="Last revision: ${revision}"/>
         <zip destfile="${build.dir}/team.zip" basedir="${build.dir}/team" />
+    </target>
+
+    <target name="wfly">
+        <exec executable="${wildfly.home}/bin/standalone.bat" discardoutput="false" failonerror="true">
+            <arg line="-Djava.home=${java.home}"/>
+            <arg line="${javac.args}"/>
+            <arg line="${vm.args}"/>
+        </exec>
+        <echo message="Waiting for Wildfly to start..."/>
+        <waitfor maxwait="1" maxwaitunit="second">
+            <socket server="localhost" port="19200"/>
+        </waitfor>
+    </target>
+
+    <target name="deploy" depends="wfly">
     </target>
 </project>

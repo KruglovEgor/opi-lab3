@@ -13,6 +13,7 @@ import java.io.Serializable;
 @SessionScoped
 @NoArgsConstructor
 public class Point implements Serializable {
+    // I wanna kill myself!!!
     @Getter
     @Setter
     private double x;
