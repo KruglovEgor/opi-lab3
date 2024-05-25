@@ -118,11 +118,19 @@
 
     <!-- Deploy war to helios -->
     <target name="scp" depends="build">
-        <scp todir="${scp.host}" port="${scp.port}" password="${scp.password}" trust="true" >
-            <fileset dir="${build.dir}">
-                <include name="**/*.war" />
-            </fileset>
-        </scp>
+<!--        <scp todir="${scp.host}" port="${scp.port}" password="${scp.password}" trust="true" >-->
+<!--            <fileset dir="${build.dir}">-->
+<!--                <include name="**/*.war" />-->
+<!--            </fileset>-->
+<!--        </scp>-->
+        <exec executable="pscp">
+            <arg value="-pw"/>
+            <arg value="${scp.password}"/>
+            <arg value="-P"/>
+            <arg value="${scp.port}"/>
+            <arg value="${build.dir}/${war.name}"/>
+            <arg value="${scp.host}:${scp.path}"/>
+        </exec>
     </target>
 
     <!-- Alternative version of the project -->
