@@ -382,7 +382,6 @@
         </exec>
     </target>
 
-
     <target name="team">
         <mkdir dir="${build.dir}/team"/>
         <property name="revision" value="HEAD"/>
