@@ -1,5 +1,5 @@
 
-<project name="opi-lab-3" default="compile" basedir=".">
+<project name="opi-lab-3" default="init" basedir=".">
 
 <!--    <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>-->
     <taskdef resource="net/sf/antcontrib/antlib.xml"/>
@@ -58,7 +58,7 @@
     </target>
 
     <!-- [default] Compile project -->
-    <target name="compile" depends="init">
+    <target name="compile">
         <javac srcdir="${src.dir}" destdir="${classes.dir}" includeantruntime="false" classpath="project.classpath">
             <classpath refid="project.classpath" />
             <compilerarg line="-Xlint:unchecked" />
