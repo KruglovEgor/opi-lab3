@@ -1,8 +1,10 @@
-
 <project name="opi-lab-3" default="init" basedir=".">
-
 <!--    <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>-->
-    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+    <taskdef resource="net/sf/antcontrib/antlib.xml">
+        <classpath>
+            <pathelement location="lib/ant-contrib.jar"/>
+        </classpath>
+    </taskdef>
 
     <property name="os.name" value="${os.name}" />
     <condition property="script.ext" value=".sh">
