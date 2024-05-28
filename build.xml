@@ -375,28 +375,65 @@
 
     <!-- Check special classes -->
     <target name="diff">
-        <exec executable="git" outputproperty="git.status" failonerror="true">
-            <arg value="status"/>
-            <arg value="--porcelain"/>
+        <exec executable="git" outputproperty="git.diff_output">
+            <arg value="diff" />
+            <arg value="--name-only" />
         </exec>
 
-        <loadfile property="classes.to.check" srcFile="${lib.dir}/classes.txt">
-            <filterchain>
-                <tokenfilter delimoutput=","/>
-            </filterchain>
-        </loadfile>
-        <echo message="${classes.to.check}"/>
+        <loadfile property="git.diff_classes_content" srcfile="${git.diff_classes}"/>
 
-        <condition property="changes.detected">
-            <and>
-                <contains string="${git.status}" substring="M"/>
-                <contains string="${git.status}" substring="${classes.to.check}"/>
-            </and>
+
+        <echo message="git.diff_output = ${git.diff_output}" />
+        <echo message="git.diff_classes_content = ${git.diff_classes_content}" />
+
+        <pathconvert property="file.paths.output" pathsep="${line.separator}">
+            <path>
+                <filelist dir="." files="${git.diff_output}"/>
+            </path>
+        </pathconvert>
+
+        <pathconvert property="file.paths.classes" pathsep="${line.separator}">
+            <path>
+                <filelist dir="." files="${git.diff_classes_content}"/>
+            </path>
+        </pathconvert>
+
+
+        <condition property="git.should_commit" value="true">
+            <resourcecount count="0" when="greater">
+                <intersect>
+                    <filelist id="1" files="${file.paths.output}"/>
+                    <filelist id="2" files="${file.paths.classes}"/>
+                </intersect>
+            </resourcecount>
         </condition>
 
-        <antcall target="commit">
-            <param name="message" value="Automated commit triggered by changes in specified classes"/>
-        </antcall>
+        <if>
+            <equals arg1="${git.should_commit}" arg2="true"/>
+            <then>
+                <tstamp>
+                    <format property="timestamp" pattern="MM.dd.yyyy hh:mm:ss aa"/>
+                </tstamp>
+
+                <exec executable="git">
+                    <arg line="add --force src"/>
+                </exec>
+
+                <exec executable="git">
+                    <arg value="commit" />
+                    <arg value="-m" />
+                    <arg value="Commit changes from ${timestamp}" />
+                </exec>
+
+                <echo message="Committing changes"/>
+            </then>
+
+            <else>
+                <echo message="No changes to commit"/>
+            </else>
+        </if>
+
+        <property name="git.should_commit" value="false"/>
     </target>
 
     <target name="commit" unless="${changes.detected}">
