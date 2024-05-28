@@ -213,76 +213,99 @@
     </target>
 
     <!-- Find the last working revision if compilation fails -->
-    <target name="history"
-            description="если проект не удаётся скомпилировать (цель compile), загружается предыдущая версия из репозитория svn. Операция повторяется до тех пор, пока проект не удастся собрать, либо не будет получена самая первая ревизия из репозитория. Если такая ревизия найдена, то формируется файл, содержащий результат операции diff для всех файлов, измёненных в ревизии, следующей непосредственно за последней работающей.">
-        <exec executable="svn" outputproperty="revision">
-            <arg value="info"/>
-            <arg value="--show-item"/>
-            <arg value="revision"/>
+    <target name="history">
+        <exec executable="svn" outputproperty="logoutput">
+            <arg value="log"/>
+            <arg value="-q"/>
+            <arg value="-r"/>
+            <arg value="HEAD:1"/>
+            <arg value="${svn.main_dir}"/>
         </exec>
+        <propertyregex property="newestRevision" input="${logoutput}" regexp="r(\d+)" select="\1"/>
+        <echo message="Newest revision: ${newestRevision}" />
+        <!-- Convert revisions to a list -->
+        <script language="javascript">
+            var newestRevision = parseInt(project.getProperty("newestRevision"));
 
-        <trycatch>
-            <try>
-                <antcall target="compile"/>
-            </try>
-            <catch>
-                <exec executable="svn">
-                    <arg value="update"/>
-                    <arg value="-r"/>
-                    <arg value="${revision}"/>
-                    <redirector outputproperty="svn.output"/>
+            var list = newestRevision;
+
+            for (var i = newestRevision - 1; i >= 0; --i) {
+                list += ',';
+                list += i;
+            }
+
+            project.setProperty("revisionsList", list);
+        </script>
+
+        <var name="break.flag" unset="true"/>
+        <!-- Loop through the revisions -->
+        <for param="revision" list="${revisionsList}" delimiter="," keepgoing="true">
+            <sequential>
+                <if>
+                    <not>
+                        <isset property="break.flag"/>
+                    </not>
+                    <then>
+                        <echo message="Processing revision: @{revision}" />
+
+                        <!-- Update to the current revision -->
+                        <exec executable="svn">
+                            <arg value="update" />
+                            <arg value="-r" />
+                            <arg value="@{revision}" />
+                            <arg value="${svn.main_dir}" />
+                        </exec>
+
+                        <!-- Try to compile the project -->
+                        <trycatch>
+                            <try>
+                                <antcall target="compile" />
+                                <!-- Set compile.success to true if compilation is successful -->
+                                <property name="compile.success" value="true" />
+                                <property name="break.flag" value="true"/>
+                            </try>
+                            <catch>
+                                <echo message="Compilation failed at revision @{revision}, continuing..." />
+                                <property name="compile.success" value="false" />
+                            </catch>
+                        </trycatch>
+                    </then>
+                    <else>
+                        <echo message="Skipping over revision: @{revision}"/>
+                    </else>
+                </if>
+            </sequential>
+        </for>
+
+        <!-- If no successful compilation, generate diff -->
+        <if>
+            <equals arg1="${compile.success}" arg2="false" />
+            <then>
+                <echo message="Reached the earliest revision without success." />
+                <exec executable="svn" outputproperty="next.revision">
+                    <arg value="log" />
+                    <arg value="-q" />
+                    <arg value="-r" />
+                    <arg value="1:HEAD" />
+                    <arg value="--incremental" />
+                    <arg value="--limit" />
+                    <arg value="1" />
+                    <arg value="${svn.main_dir}" />
                 </exec>
-                <var name="break.flag" unset="true"/>
-                <for param="i" begin="${revision}" end="0" step="-1">
-                    <sequential>
-                        <if>
-                            <not>
-                                <isset property="break.flag"/>
-                            </not>
-                            <then>
-                                <echo>Revision: ${revision}</echo>
-                                <trycatch>
-                                    <try>
-                                        <antcall target="compile"/>
-                                        <property name="prev_revision" value="0"/>
-                                        <script language="javascript">
-                                            var rev = project.getProperty("revision");
-                                            rev = rev  -1;
-                                            project.setProperty("prev_revision", rev);
-                                        </script>
-                                        <exec executable="svn">
-                                            <arg value="diff"/>
-                                            <arg value="-r"/>
-                                            <arg value="${prev_revision}:${revision}"/>
-                                            <arg value="--summarize"/>
-                                            <redirector output="${diff_file}"/>
-                                        </exec>
-                                        <property name="break.flag" value="true"/>
-                                    </try>
-                                    <catch>
-                                        <script language="javascript">
-                                            var rev = project.getProperty("revision");
-                                            rev = rev -1;
-                                            project.setProperty("revision", rev);
-                                        </script>
-                                        <exec executable="svn">
-                                            <arg value="update"/>
-                                            <arg value="-r"/>
-                                            <arg value="${revision}"/>
-                                            <arg value="--accept"/>
-                                            <arg value="theirs-full"/>
-                                            <redirector outputproperty="svn.output"/>
-                                        </exec>
-                                    </catch>
-                                </trycatch>
-                            </then>
-                        </if>
-                    </sequential>
-                </for>
-            </catch>
-        </trycatch>
+                <exec executable="svn">
+                    <arg value="diff" />
+                    <arg value="-r" />
+                    <arg value="${revision}:${next.revision}" />
+                    <arg value="${svn.main_dir}" />
+                    <redirector output="${svn.diff_outp}" append="false" />
+                </exec>
+            </then>
+        </if>
     </target>
 
+    <target name="compile-success-exit" depends="compile">
+        <fail message="Exiting loop after successful compilation." />
+    </target>
 
     <!-- Generate MD5 & SHA-1 hash -->
     <target name="generate-checksums">
