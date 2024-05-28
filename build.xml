@@ -4,11 +4,20 @@
 <!--    <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>-->
     <taskdef resource="net/sf/antcontrib/antlib.xml"/>
 
+    <property name="os.name" value="${os.name}" />
+    <condition property="script.ext" value=".sh">
+        <os family="unix" />
+    </condition>
+    <condition property="script.ext" value=".bat">
+        <os family="windows" />
+    </condition>
 
     <!-- Include variables and constants -->
     <property file="build.properties" />
-
     <property file="secret.properties" />
+
+    <property name="wildfly.start.script" value="${wildfly.home}/bin/standalone${script.ext}" />
+    <property name="wildfly.stop.script" value="${wildfly.home}/bin/jboss-cli${script.ext} --connect command=:shutdown" />
 
     <!-- Define the classpath for the project -->
     <path id="project.classpath">
@@ -175,11 +184,10 @@
         <delete dir="${src.tmp}"/>
     </target>
 
-    <!-- Alteernative environment -->
-    <target name="env" depends="build">
-        <java jar="${build.dir}/${war.name}" fork="true">
-            <jvmarg line="${jvm.params}"/>
-        </java>
+    <!-- Alternative environment -->
+    <target name="env" depends="build, start-wfly">
+        <echo message="Deploying WAR file to WildFly server" />
+        <copy file="${build.dir}/${war.name}" todir="${wildfly.home}/standalone/deployments" />
     </target>
 
     <!-- Find the last working revision if compilation fails -->
@@ -400,18 +408,25 @@
         <zip destfile="${build.dir}/team.zip" basedir="${build.dir}/team" />
     </target>
 
-    <target name="wfly">
-        <exec executable="${wildfly.home}/bin/standalone.bat" discardoutput="false" failonerror="true">
-            <arg line="-Djava.home=${java.home}"/>
-            <arg line="${javac.args}"/>
-            <arg line="${vm.args}"/>
+    <!-- Target to start WildFly -->
+    <target name="start-wfly">
+        <echo message="Starting WildFly server using ${wildfly.start.script}" />
+        <echo message="wildfly.java.home is ${wildfly.java.home}"/>
+        <exec executable="${wildfly.start.script}">
+            <env key="JAVA_HOME" value="${wildfly.java.home}" />
+            <env key="JAVA_OPTS" value="${wildfly.java.opts}" />
+            <arg value="-c" />
+            <arg value="${wildfly.config}" />
+            <arg value="-Djboss.http.port=${wildfly.http.port}"/>
         </exec>
-        <echo message="Waiting for Wildfly to start..."/>
-        <waitfor maxwait="1" maxwaitunit="second">
-            <socket server="localhost" port="19200"/>
-        </waitfor>
     </target>
 
-    <target name="deploy" depends="wfly">
+    <!-- Target to stop WildFly -->
+    <target name="stop-wfly">
+        <echo message="Stopping WildFly server" />
+        <exec executable="${wildfly.home}/bin/jboss-cli${script.ext}">
+            <arg value="--connect" />
+            <arg value="command=:shutdown" />
+        </exec>
     </target>
 </project>
