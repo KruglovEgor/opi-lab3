@@ -1,2 +1,2 @@
-beans.Point
-beans.PointAlt
+src/main/java/beans/Point.java
+src/main/java/beans/ResultTable.java
