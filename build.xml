@@ -4,11 +4,20 @@
 <!--    <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>-->
     <taskdef resource="net/sf/antcontrib/antlib.xml"/>
 
+    <property name="os.name" value="${os.name}" />
+    <condition property="script.ext" value=".sh">
+        <os family="unix" />
+    </condition>
+    <condition property="script.ext" value=".bat">
+        <os family="windows" />
+    </condition>
 
     <!-- Include variables and constants -->
     <property file="build.properties" />
-
     <property file="secret.properties" />
+
+    <property name="wildfly.start.script" value="${wildfly.home}/bin/standalone${script.ext}" />
+    <property name="wildfly.stop.script" value="${wildfly.home}/bin/jboss-cli${script.ext} --connect command=:shutdown" />
 
     <!-- Define the classpath for the project -->
     <path id="project.classpath">
@@ -117,11 +126,19 @@
 
     <!-- Deploy war to helios -->
     <target name="scp" depends="build">
-        <scp todir="${scp.host}" port="${scp.port}" password="${scp.password}" trust="true" >
-            <fileset dir="${build.dir}">
-                <include name="**/*.war" />
-            </fileset>
-        </scp>
+<!--        <scp todir="${scp.host}" port="${scp.port}" password="${scp.password}" trust="true" >-->
+<!--            <fileset dir="${build.dir}">-->
+<!--                <include name="**/*.war" />-->
+<!--            </fileset>-->
+<!--        </scp>-->
+        <exec executable="pscp">
+            <arg value="-pw"/>
+            <arg value="${scp.password}"/>
+            <arg value="-P"/>
+            <arg value="${scp.port}"/>
+            <arg value="${build.dir}/${war.name}"/>
+            <arg value="${scp.host}:${scp.path}"/>
+        </exec>
     </target>
 
     <!-- Alternative version of the project -->
@@ -167,11 +184,10 @@
         <delete dir="${src.tmp}"/>
     </target>
 
-    <!-- Alteernative environment -->
-    <target name="env" depends="build">
-        <java jar="${build.dir}/${war.name}" fork="true">
-            <jvmarg line="${jvm.params}"/>
-        </java>
+    <!-- Alternative environment -->
+    <target name="env" depends="build, start-wfly">
+        <echo message="Deploying WAR file to WildFly server" />
+        <copy file="${build.dir}/${war.name}" todir="${wildfly.home}/standalone/deployments" />
     </target>
 
     <!-- Find the last working revision if compilation fails -->
@@ -347,6 +363,7 @@
                 <tokenfilter delimoutput=","/>
             </filterchain>
         </loadfile>
+        <echo message="${classes.to.check}"/>
 
         <condition property="changes.detected">
             <and>
@@ -360,7 +377,7 @@
         </antcall>
     </target>
 
-    <target name="commit" if="changes.detected">
+    <target name="commit" unless="${changes.detected}">
         <exec executable="git" failonerror="true">
             <arg value="add"/>
             <arg value="."/>
@@ -372,7 +389,6 @@
             <arg value="${message}"/>
         </exec>
     </target>
-
 
     <target name="team">
         <mkdir dir="${build.dir}/team"/>
@@ -390,5 +406,27 @@
         </for>
         <echo message="Last revision: ${revision}"/>
         <zip destfile="${build.dir}/team.zip" basedir="${build.dir}/team" />
+    </target>
+
+    <!-- Target to start WildFly -->
+    <target name="start-wfly">
+        <echo message="Starting WildFly server using ${wildfly.start.script}" />
+        <echo message="wildfly.java.home is ${wildfly.java.home}"/>
+        <exec executable="${wildfly.start.script}">
+            <env key="JAVA_HOME" value="${wildfly.java.home}" />
+            <env key="JAVA_OPTS" value="${wildfly.java.opts}" />
+            <arg value="-c" />
+            <arg value="${wildfly.config}" />
+            <arg value="-Djboss.http.port=${wildfly.http.port}"/>
+        </exec>
+    </target>
+
+    <!-- Target to stop WildFly -->
+    <target name="stop-wfly">
+        <echo message="Stopping WildFly server" />
+        <exec executable="${wildfly.home}/bin/jboss-cli${script.ext}">
+            <arg value="--connect" />
+            <arg value="command=:shutdown" />
+        </exec>
     </target>
 </project>
