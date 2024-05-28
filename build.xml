@@ -1,5 +1,5 @@
 
-<project name="opi-lab-3" default="compile" basedir=".">
+<project name="opi-lab-3" default="init" basedir=".">
 
 <!--    <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>-->
     <taskdef resource="net/sf/antcontrib/antlib.xml"/>
@@ -29,16 +29,36 @@
     <!-- Clean the build directory -->
     <target name="clean">
         <delete dir="${build.dir}" />
+        <antcall target="init"/>
     </target>
     
     <!-- Create the build directory structure -->
     <target name="init">
         <mkdir dir="${build.dir}" />
         <mkdir dir="${classes.dir}" />
+
+        <exec executable="git">
+            <arg line="init"/>
+        </exec>
+
+        <exec executable="svnadmin">
+            <arg line="create --fs-type fsfs ${svn.repo}"/>
+        </exec>
+
+        <path id="repo.path">
+            <pathelement location="${basedir}/${svn.repo}"/>
+        </path>
+        <pathconvert property="repo.url" refid="repo.path">
+            <map from="\\" to="/"/>
+            <map from=":" to=""/>
+        </pathconvert>
+        <exec executable="svn">
+            <arg line="checkout file:///${repo.url} ${svn.main_dir}"/>
+        </exec>
     </target>
 
     <!-- [default] Compile project -->
-    <target name="compile" depends="init">
+    <target name="compile">
         <javac srcdir="${src.dir}" destdir="${classes.dir}" includeantruntime="false" classpath="project.classpath">
             <classpath refid="project.classpath" />
             <compilerarg line="-Xlint:unchecked" />
@@ -339,11 +359,11 @@
             </fileset>
         </junitreport>
 
-        <copy todir="${svn.main_dir}/report">
+        <copy todir="${svn.report}">
             <fileset dir="${build.dir}/test-results/report_${timestamp}"/>
         </copy>
 
-        <exec executable="svn" dir="${svn.main_dir}/report">
+        <exec executable="svn" dir="${svn.report}">
             <arg line="add --force ."/>
         </exec>
         <exec executable="svn" dir="${svn.main_dir}">
@@ -390,22 +410,65 @@
         </exec>
     </target>
 
+    <target name="svn-commit">
+        <copy todir="${svn.src}">
+            <fileset dir="${src}"/>
+        </copy>
+
+        <exec executable="svn" dir="${svn.main_dir}">
+            <arg line="add --force ."/>
+        </exec>
+
+        <exec executable="svn" dir="${svn.main_dir}">
+            <arg line="commit -m 'Commit from Ant'"/>
+        </exec>
+    </target>
+
     <target name="team">
+        <copy todir="${src.tmp}">
+            <fileset dir="${src}"/>
+        </copy>
+        <delete dir="${src}"/>
+
         <mkdir dir="${build.dir}/team"/>
-        <property name="revision" value="HEAD"/>
-        <for list="1,2" param="i">
-            <sequential>
-                <exec executable="svn" dir="${svn.main_dir}">
-                    <arg line="update −r ${revision}"/>
-                </exec>
-                <antcall target="build"/>
-                <move file ="${build.dir}/${war.name}" tofile="${build.dir}/build-@{i}.war"/>
-                <move file="${build.dir}/build-@{i}.war" todir="${build.dir}/team"/>
-                <property name="revision" value="PREV"/>
-            </sequential>
-        </for>
-        <echo message="Last revision: ${revision}"/>
+
+        <exec executable="svn" dir="${svn.main_dir}">
+            <arg line="update -r PREV"/>
+        </exec>
+
+        <copy todir="${src}">
+            <fileset dir="${svn.src}"/>
+        </copy>
+        <antcall target="build"/>
+        <delete dir="${src}"/>
+        <move file ="${build.dir}/${war.name}" tofile="${build.dir}/build-1.war"/>
+        <move file="${build.dir}/build-1.war" todir="${build.dir}/team"/>
+
+
+        <exec executable="svn" dir="${svn.main_dir}">
+            <arg line="update -r PREV"/>
+        </exec>
+
+        <copy todir="${src}">
+            <fileset dir="${svn.src}"/>
+        </copy>
+
+        <antcall target="build"/>
+        <delete dir="${src}"/>
+        <move file ="${build.dir}/${war.name}" tofile="${build.dir}/build-2.war"/>
+        <move file="${build.dir}/build-2.war" todir="${build.dir}/team"/>
+
+
+        <exec executable="svn" dir="${svn.main_dir}">
+            <arg line="update"/>
+        </exec>
+
         <zip destfile="${build.dir}/team.zip" basedir="${build.dir}/team" />
+        <copy todir="${src}">
+            <fileset dir="${src.tmp}"/>
+        </copy>
+
+        <delete dir="${src.tmp}"/>
     </target>
 
     <!-- Target to start WildFly -->
