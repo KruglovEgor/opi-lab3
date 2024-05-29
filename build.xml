@@ -215,93 +215,93 @@
 
     <!-- Find the last working revision if compilation fails -->
     <target name="history">
-        <exec executable="svn" outputproperty="logoutput">
-            <arg value="log"/>
-            <arg value="-q"/>
-            <arg value="-r"/>
-            <arg value="HEAD:1"/>
-            <arg value="${svn.main_dir}"/>
-        </exec>
-        <propertyregex property="newestRevision" input="${logoutput}" regexp="r(\d+)" select="\1"/>
-        <echo message="Newest revision: ${newestRevision}" />
-        <!-- Convert revisions to a list -->
-        <script language="javascript">
-            var newestRevision = parseInt(project.getProperty("newestRevision"));
+<!--        <exec executable="svn" outputproperty="logoutput">-->
+<!--            <arg value="log"/>-->
+<!--            <arg value="-q"/>-->
+<!--            <arg value="-r"/>-->
+<!--            <arg value="HEAD:1"/>-->
+<!--            <arg value="${svn.main_dir}"/>-->
+<!--        </exec>-->
+<!--        <propertyregex property="newestRevision" input="${logoutput}" regexp="r(\d+)" select="\1"/>-->
+<!--        <echo message="Newest revision: ${newestRevision}" />-->
+<!--        &lt;!&ndash; Convert revisions to a list &ndash;&gt;-->
+<!--        <script language="javascript">-->
+<!--            var newestRevision = parseInt(project.getProperty("newestRevision"));-->
 
-            var list = newestRevision;
+<!--            var list = newestRevision;-->
 
-            for (var i = newestRevision - 1; i >= 0; --i) {
-                list += ',';
-                list += i;
-            }
+<!--            for (var i = newestRevision - 1; i >= 0; &#45;&#45;i) {-->
+<!--                list += ',';-->
+<!--                list += i;-->
+<!--            }-->
 
-            project.setProperty("revisionsList", list);
-        </script>
+<!--            project.setProperty("revisionsList", list);-->
+<!--        </script>-->
 
-        <var name="break.flag" unset="true"/>
-        <!-- Loop through the revisions -->
-        <for param="revision" list="${revisionsList}" delimiter="," keepgoing="true">
-            <sequential>
-                <if>
-                    <not>
-                        <isset property="break.flag"/>
-                    </not>
-                    <then>
-                        <echo message="Processing revision: @{revision}" />
+<!--        <var name="break.flag" unset="true"/>-->
+<!--        &lt;!&ndash; Loop through the revisions &ndash;&gt;-->
+<!--        <for param="revision" list="${revisionsList}" delimiter="," keepgoing="true">-->
+<!--            <sequential>-->
+<!--                <if>-->
+<!--                    <not>-->
+<!--                        <isset property="break.flag"/>-->
+<!--                    </not>-->
+<!--                    <then>-->
+<!--                        <echo message="Processing revision: @{revision}" />-->
 
-                        <!-- Update to the current revision -->
-                        <exec executable="svn">
-                            <arg value="update" />
-                            <arg value="-r" />
-                            <arg value="@{revision}" />
-                            <arg value="${svn.main_dir}" />
-                        </exec>
+<!--                        &lt;!&ndash; Update to the current revision &ndash;&gt;-->
+<!--                        <exec executable="svn">-->
+<!--                            <arg value="update" />-->
+<!--                            <arg value="-r" />-->
+<!--                            <arg value="@{revision}" />-->
+<!--                            <arg value="${svn.main_dir}" />-->
+<!--                        </exec>-->
 
-                        <!-- Try to compile the project -->
-                        <trycatch>
-                            <try>
-                                <antcall target="compile" />
-                                <!-- Set compile.success to true if compilation is successful -->
-                                <property name="compile.success" value="true" />
-                                <property name="break.flag" value="true"/>
-                            </try>
-                            <catch>
-                                <echo message="Compilation failed at revision @{revision}, continuing..." />
-                                <property name="compile.success" value="false" />
-                            </catch>
-                        </trycatch>
-                    </then>
-                    <else>
-                        <echo message="Skipping over revision: @{revision}"/>
-                    </else>
-                </if>
-            </sequential>
-        </for>
+<!--                        &lt;!&ndash; Try to compile the project &ndash;&gt;-->
+<!--                        <trycatch>-->
+<!--                            <try>-->
+<!--                                <antcall target="compile" />-->
+<!--                                &lt;!&ndash; Set compile.success to true if compilation is successful &ndash;&gt;-->
+<!--                                <property name="compile.success" value="true" />-->
+<!--                                <property name="break.flag" value="true"/>-->
+<!--                            </try>-->
+<!--                            <catch>-->
+<!--                                <echo message="Compilation failed at revision @{revision}, continuing..." />-->
+<!--                                <property name="compile.success" value="false" />-->
+<!--                            </catch>-->
+<!--                        </trycatch>-->
+<!--                    </then>-->
+<!--                    <else>-->
+<!--                        <echo message="Skipping over revision: @{revision}"/>-->
+<!--                    </else>-->
+<!--                </if>-->
+<!--            </sequential>-->
+<!--        </for>-->
 
-        <!-- If no successful compilation, generate diff -->
-        <if>
-            <equals arg1="${compile.success}" arg2="false" />
-            <then>
-                <echo message="Reached the earliest revision without success." />
-                <exec executable="svn" outputproperty="next.revision">
-                    <arg value="log" />
-                    <arg value="-q" />
-                    <arg value="-r" />
-                    <arg value="1:HEAD" />
-                    <arg value="--incremental" />
-                    <arg value="--limit" />
-                    <arg value="1" />
-                    <arg value="${svn.main_dir}" />
-                </exec>
-                <exec executable="svn">
-                    <arg value="diff" />
-                    <arg value="-r" />
-                    <arg value="${revision}:${next.revision}" />
-                    <arg value="${svn.main_dir}" />
-                    <redirector output="${svn.diff_outp}" append="false" />
-                </exec>
-            </then>
-        </if>
+<!--        &lt;!&ndash; If no successful compilation, generate diff &ndash;&gt;-->
+<!--        <if>-->
+<!--            <equals arg1="${compile.success}" arg2="false" />-->
+<!--            <then>-->
+<!--                <echo message="Reached the earliest revision without success." />-->
+<!--                <exec executable="svn" outputproperty="next.revision">-->
+<!--                    <arg value="log" />-->
+<!--                    <arg value="-q" />-->
+<!--                    <arg value="-r" />-->
+<!--                    <arg value="1:HEAD" />-->
+<!--                    <arg value="&#45;&#45;incremental" />-->
+<!--                    <arg value="&#45;&#45;limit" />-->
+<!--                    <arg value="1" />-->
+<!--                    <arg value="${svn.main_dir}" />-->
+<!--                </exec>-->
+<!--                <exec executable="svn">-->
+<!--                    <arg value="diff" />-->
+<!--                    <arg value="-r" />-->
+<!--                    <arg value="${revision}:${next.revision}" />-->
+<!--                    <arg value="${svn.main_dir}" />-->
+<!--                    <redirector output="${svn.diff_outp}" append="false" />-->
+<!--                </exec>-->
+<!--            </then>-->
+<!--        </if>-->
     </target>
 
     <target name="compile-success-exit" depends="compile">
