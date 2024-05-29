@@ -215,7 +215,136 @@
 
     <!-- Find the last working revision if compilation fails -->
     <target name="history">
-<!--        <exec executable="svn" outputproperty="logoutput">-->
+        <copy todir="${src.tmp}">
+            <fileset dir="${src}"/>
+        </copy>
+        <delete dir="${src}"/>
+
+        <exec executable="svn" dir="${svn.main_dir}">
+            <arg line="update -r PREV"/>
+        </exec>
+
+        <copy todir="${src}">
+            <fileset dir="${svn.src}"/>
+        </copy>
+        <trycatch>
+            <try>
+                <antcall target="compile"/>
+            </try>
+            <catch>
+                <echo message="Compilation of latest revision failed."/>
+                <exec executable="svn" outputproperty="logoutput">
+                    <arg value="log"/>
+                    <arg value="-q"/>
+                    <arg value="-r"/>
+                    <arg value="HEAD"/>
+                    <arg value="${svn.main_dir}"/>
+                </exec>
+                <propertyregex property="revisions.latest" input="${logoutput}" regexp="r(\d+)" select="\1"/>
+                <echo message="Latest revision number is: ${revisions.latest}"/>
+                <script language="javascript">
+                    var latest = parseInt(project.getProperty('revisions.latest'));
+                    var revisionsString = latest;
+                    for (var i = latest - 1; i > 0; --i) {
+                        revisionsString += ',' + i;
+                    }
+                    project.setNewProperty('revisions.string', revisionsString);
+                </script>
+                <echo message="List of revisions: ${revisions.string}"/>
+                <var name="break.flag" unset="true"/>
+                <for param="revision" list="${revisions.string}" delimiter=",">
+                    <sequential>
+                        <if>
+                            <not>
+                                <isset property="break.flag"/>
+                            </not>
+                            <then>
+                                <echo message="Processing revision: @{revision}" />
+                                <exec executable="svn">
+                                    <arg value="update" />
+                                    <arg value="-r" />
+                                    <arg value="@{revision}" />
+                                    <arg value="${svn.main_dir}" />
+                                </exec>
+                                <delete dir="${src}"/>
+                                <copy todir="${src}">
+                                    <fileset dir="${svn.src}"/>
+                                </copy>
+                                <trycatch>
+                                    <try>
+                                        <antcall target="compile"/>
+                                        <echo message="Compiled successfully at revision @{revision}"/>
+                                        <property name="break.flag" value="true"/>
+                                        <property name="revisions.last_working" value="@{revision}"/>
+                                    </try>
+                                </trycatch>
+                            </then>
+                            <else>
+                                <echo message="Skipping over revision: @{revision}"/>
+                            </else>
+                        </if>
+                    </sequential>
+                </for>
+                <if>
+                    <isset property="revisions.last_working"/>
+                    <then>
+                        <echo message="Last working revision is: ${revisions.last_working}"/>
+
+                        <script language="javascript">
+                            var lastWorking = project.getProperty("revisions.last_working");
+
+                            var nextAfterLast = ~~(lastWorking) + 1;
+
+                            project.setNewProperty("revisions.next_after_last", nextAfterLast);
+                        </script>
+
+                        <echo message="Next revision is ${revisions.next_after_last}"/>
+
+                        <exec executable="svn">
+                            <arg value="update" />
+                            <arg value="-r" />
+                            <arg value="${revisions.next_after_last}" />
+                            <arg value="${svn.main_dir}" />
+                        </exec>
+                        <delete dir="${src}"/>
+                        <copy todir="${src}">
+                            <fileset dir="${svn.src}"/>
+                        </copy>
+                        <exec executable="svn">
+                            <arg value="update" />
+                            <arg value="-r" />
+                            <arg value="${revisions.last_working}" />
+                            <arg value="${svn.main_dir}" />
+                        </exec>
+                        <delete dir="${svn.src}"/>
+                        <copy todir="${svn.src}">
+                            <fileset dir="${src}"/>
+                        </copy>
+                        <exec executable="svn" dir="${svn.main_dir}" output="./svn_diff_outp.txt">
+                            <arg value="diff"/>
+                        </exec>
+                        <delete dir="${svn.src}"/>
+                    </then>
+                    <else>
+                        <echo message="Last working revision not found."/>
+                    </else>
+                </if>
+            </catch>
+        </trycatch>
+
+        <echo message="Cleaning up..."/>
+        <exec executable="svn" dir="${svn.main_dir}">
+            <arg line="update -r HEAD"/>
+        </exec>
+
+        <delete dir="${src}"/>
+        <copy todir="${src}">
+            <fileset dir="${src.tmp}"/>
+        </copy>
+        <delete dir="${src.tmp}"/>
+
+
+        <!--        <exec executable="svn" outputproperty="logoutput">-->
 <!--            <arg value="log"/>-->
 <!--            <arg value="-q"/>-->
 <!--            <arg value="-r"/>-->
