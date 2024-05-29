@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project name="opi-lab-3" default="init" basedir=".">
 <!--    <taskdef resource="net/sf/antcontrib/antcontrib.properties"/>-->
     <taskdef resource="net/sf/antcontrib/antlib.xml">
