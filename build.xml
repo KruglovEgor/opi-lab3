@@ -44,6 +44,10 @@
             <arg line="init"/>
         </exec>
 
+        <exec executable="git">
+            <arg line="config core.autocrlf false"/>
+        </exec>
+
         <exec executable="svnadmin">
             <arg line="create --fs-type fsfs ${svn.repo}"/>
         </exec>
