@@ -9,6 +9,8 @@ import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
 import java.io.Serializable;
 
+import static util.AreaChecker.checkHit;
+
 @ManagedBean(name = "point")
 @SessionScoped
 @NoArgsConstructor
@@ -48,9 +50,7 @@ public class Point implements Serializable {
     public void check() {
         long start = System.nanoTime();
         long attemptTime = System.currentTimeMillis();
-        boolean hit = ((x >= - r / 2) && (x <= 0) && (y >= 0) && (y <= r))
-                || ((x <= 0) && (x >= -r / 2) && (y <= 0) && (y >= -r - 2 * x))
-                || ((x >= 0) && (y >= 0) && (x * x + y * y <= r * r ));
+        boolean hit = checkHit(x, y, r);
         long executionTime = System.nanoTime() - start;
         table.addPoint(new Point(x, y, r, hit, attemptTime, executionTime));
     }

@@ -1,60 +1,57 @@
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static util.AreaChecker.checkHit;
 
 public class AreaCheckerTest {
-    public static boolean isInArea(double x, double y, double r) {
-        boolean hit = ((x >= - r / 2) && (x <= 0) && (y >= 0) && (y <= r))
-                || ((x <= 0) && (x >= -r / 2) && (y <= 0) && (y >= -r - 2 * x))
-                || ((x >= 0) && (y >= 0) && (x * x + y * y <= r * r ));
-        return hit;
-    }
 
     @Test
     public void testIsInAreaForRectangle() {
         // Inside the rectangle
-        assertTrue(isInArea(-4, 1, 10));
-        assertTrue(isInArea(-5, 10, 10));
-        assertTrue(isInArea(-2, 5, 10));
+        assertTrue(checkHit(-4, 1, 10));
+        assertTrue(checkHit(-5, 10, 10));
+        assertTrue(checkHit(-2, 5, 10));
 
         // Outside the rectangle
-        assertFalse(isInArea(-6, 1, 10));
-        assertFalse(isInArea(-1, 11, 10));
+        assertFalse(checkHit(-6, 1, 10));
+        assertFalse(checkHit(-1, 11, 10));
     }
 
     @Test
     public void testIsInAreaForSemiCircle() {
         // Inside the semi-circle
-        assertTrue(isInArea(10, 0, 10));
-        assertTrue(isInArea(0, 10, 10));
-        assertTrue(isInArea(5, 5, 10));
-        assertTrue(isInArea(0, 0, 10));
+        assertTrue(checkHit(10, 0, 10));
+        assertTrue(checkHit(0, 10, 10));
+        assertTrue(checkHit(5, 5, 10));
+        assertTrue(checkHit(0, 0, 10));
 
         // Outside the semi-circle
-        assertFalse(isInArea(10, 10, 10));
-        assertFalse(isInArea(0, 11, 10));
-        assertFalse(isInArea(11, 0, 10));
+        assertFalse(checkHit(10, 10, 10));
+        assertFalse(checkHit(0, 11, 10));
+        assertFalse(checkHit(11, 0, 10));
     }
 
     @Test
     public void testIsInAreaForTriangle() {
         // Inside the triangle
-        assertTrue(isInArea(-5, 0, 10));
-        assertTrue(isInArea(0, -10, 10));
-        assertTrue(isInArea(-1, -1, 10));
-        assertTrue(isInArea(-2.5, -2.5, 10));
+        assertTrue(checkHit(-5, 0, 10));
+        assertTrue(checkHit(0, -10, 10));
+        assertTrue(checkHit(-1, -1, 10));
+        assertTrue(checkHit(-2.5, -2.5, 10));
 
         // Outside the triangle
-        assertFalse(isInArea(-5, -0.1, 10));
-        assertFalse(isInArea(-6, -2, 10));
-        assertFalse(isInArea(0, -11, 10));
+        assertFalse(checkHit(-5, -0.1, 10));
+        assertFalse(checkHit(-6, -2, 10));
+        assertFalse(checkHit(0, -11, 10));
     }
 
     @Test
     public void testIsInAreaForEmptySector() {
         for (int i = 1; i < 10; ++i) {
             for (int j = -1; j > -10; --j) {
-                assertFalse(isInArea(i, j, 10));
+                assertFalse(checkHit(i, j, 10));
             }
         }
     }
