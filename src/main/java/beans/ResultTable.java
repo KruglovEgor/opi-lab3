@@ -14,10 +14,12 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -42,15 +44,32 @@ public class ResultTable implements Serializable {
                 DataSource ds = (DataSource) context.lookup("java:jboss/datasources/ExampleDS");
                 connection = ds.getConnection();
             } catch (Exception e) {
-                connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres", "postgres", "123456sG");
+                Properties properties = loadDatabaseProperties();
+                String url = properties.getProperty("db.url");
+                String username = properties.getProperty("db.username");
+                String password = properties.getProperty("db.password");
+                connection = DriverManager.getConnection(url, username, password);
             }
+
             LOGGER.info("server connected to the database");
             createTable();
             getDataFromTable();
         } catch (SQLException | IOException | NamingException e) {
             LOGGER.error(e.getMessage());
-            System.exit(-1);
+            throw new RuntimeException(e.getMessage(), e);
+           //  System.exit(-1);
         }
+    }
+
+    private Properties loadDatabaseProperties() throws IOException {
+        Properties properties = new Properties();
+        try (InputStream input = getClass().getClassLoader().getResourceAsStream("database.properties")) {
+            if (input == null) {
+                throw new IOException("Unable to find database.properties");
+            }
+            properties.load(input);
+        }
+        return properties;
     }
 
     private void createTable() throws SQLException, IOException {

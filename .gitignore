@@ -2,3 +2,5 @@
 build/
 secret.properties
 svn/
+src/main/resources/database.properties
+src/test/resources/database.properties
