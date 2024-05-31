@@ -17,6 +17,7 @@ public class ResultTableTest {
             for (int i = -5; i < 5; i++) {
                 for (int j = -5; j < 5; j++) {
                     Point point = new Point(i, j, 5, false, 0, 0);
+                    this.add(point);
                 }
             }
         }}
@@ -42,7 +43,6 @@ public class ResultTableTest {
         POINTS_TO_ADD.forEach(point -> {
             point.setTable(resultTable);
             point.check();
-            resultTable.addPoint(point);
         });
 
         int finalCount = resultTable.getResults().size();
