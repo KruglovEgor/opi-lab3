@@ -115,6 +115,7 @@
         <path refid="project.classpath" />
         <pathelement location="${build.dir}/webapp/WEB-INF/classes" />
         <pathelement location="${build.dir}/test-classes" />
+        <pathelement location="${test.resources.dir}"/>
         <fileset dir="${lib.dir}">
             <include name="**/*.jar" />
         </fileset>
@@ -131,7 +132,7 @@
             <compilerarg line="-Xlint:unchecked"/>
         </javac>
         <mkdir dir="${build.dir}/test-results/${timestamp}"/>
-        <junitlauncher haltonfailure="true" printsummary="true" >
+        <junitlauncher haltonfailure="true" printsummary="true">
             <classpath>
                 <path refid="test.classpath"/>
                 <pathelement location="${build.dir}"/>
