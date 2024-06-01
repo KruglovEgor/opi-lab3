@@ -176,17 +176,17 @@
         </copy>
 
         <replace dir="${src}">
-            <exclude name="∗∗/∗.jar"/>
+            <exclude name="**/*.jar"/>
             <replacefilter token="${alt.replace.from1}" value="${alt.replace.to1}"/>
         </replace>
 
         <replace dir="${src}">
-            <exclude name="∗∗/∗.jar"/>
+            <exclude name="**/*.jar"/>
             <replacefilter token="${alt.replace.from2}" value="${alt.replace.to2}"/>
         </replace>
 
         <replace dir="${src}">
-            <exclude name="∗∗/∗.jar"/>
+            <exclude name="**/*.jar"/>
             <replacefilter token="${alt.replace.from3}" value="${alt.replace.to3}"/>
         </replace>
 
